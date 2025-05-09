@@ -5,3 +5,7 @@ INSERT INTO teachers (
     $1, $2
 )
 RETURNING *;
+
+-- name: DeleteTeacher :exec
+DELETE FROM teachers
+WHERE id = $1;
