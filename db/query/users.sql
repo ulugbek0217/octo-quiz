@@ -1,8 +1,8 @@
 -- name: CreateUser :one
 INSERT INTO users (
-    telegram_id, full_name, username, phone_number
+    telegram_id, full_name, username, "role", phone
 ) VALUES (
-    $1, $2, $3, $4
+    $1, $2, $3, $4, $5
 )
 RETURNING *;
 
@@ -13,4 +13,4 @@ LIMIT 1;
 
 -- name: DeleteUser :exec
 DELETE FROM users
-WHERE id = $1;
+WHERE user_id = $1;
