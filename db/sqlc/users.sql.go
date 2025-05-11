@@ -15,7 +15,7 @@ INSERT INTO users (
 ) VALUES (
     $1, $2, $3, $4, $5
 )
-RETURNING user_id, telegram_id, full_name, username, role, phone
+RETURNING user_id, telegram_id, full_name, username, role, phone, created_at
 `
 
 type CreateUserParams struct {
@@ -42,6 +42,7 @@ func (q *Queries) CreateUser(ctx context.Context, db DBTX, arg CreateUserParams)
 		&i.Username,
 		&i.Role,
 		&i.Phone,
+		&i.CreatedAt,
 	)
 	return i, err
 }
@@ -57,7 +58,7 @@ func (q *Queries) DeleteUser(ctx context.Context, db DBTX, userID int64) error {
 }
 
 const getUser = `-- name: GetUser :one
-SELECT user_id, telegram_id, full_name, username, role, phone FROM users
+SELECT user_id, telegram_id, full_name, username, role, phone, created_at FROM users
 WHERE user_id = $1
 LIMIT 1
 `
@@ -72,6 +73,7 @@ func (q *Queries) GetUser(ctx context.Context, db DBTX, userID int64) (User, err
 		&i.Username,
 		&i.Role,
 		&i.Phone,
+		&i.CreatedAt,
 	)
 	return i, err
 }

@@ -9,6 +9,7 @@ import (
 	"sync"
 
 	"github.com/go-telegram/bot"
+	"github.com/go-telegram/fsm"
 	"github.com/jackc/pgx/v5/pgxpool"
 	db "github.com/ulugbek0217/octo-quiz/db/sqlc"
 	"github.com/ulugbek0217/octo-quiz/handlers"
@@ -20,35 +21,51 @@ func main() {
 	if err != nil {
 		log.Fatalf("err loading .env: %v\n", err)
 	}
+
 	dbPath := os.Getenv("DB_URL")
 	rootID, err := strconv.ParseInt(os.Getenv("ROOT"), 10, 64)
 	if err != nil {
 		log.Fatalf("couldn't parse root id: %v\n", err)
 	}
+
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
+
 	conn, err := pgxpool.New(context.Background(), dbPath)
 	if err != nil {
 		log.Fatalf("err connecting to db: %v\n", err)
 	}
 	defer conn.Close()
+	wg := sync.WaitGroup{}
 
 	store := db.NewStore(conn)
-	wg := sync.WaitGroup{}
 	app := handlers.App{
 		Store: store,
-		WG:    &wg,
 		Root:  rootID,
+		WG:    &wg,
 	}
-
+	app.F = fsm.New(
+		handlers.StateDefault,
+		map[fsm.StateID]fsm.Callback{
+			handlers.StateAskName:     app.CallbackName,
+			handlers.StateAskUsername: app.CallbackUsername,
+			handlers.StateAskRole:     app.CallbackRole,
+			handlers.StateAskPhone:    app.CallbackPhone,
+			handlers.StateFinish:      app.CallbackFinish,
+		},
+	)
 	options := []bot.Option{
 		bot.WithMessageTextHandler("/start", bot.MatchTypeExact, app.Start),
+		bot.WithDefaultHandler(app.MainHandler),
+		// bot.WithWorkers(10),
 	}
-
 	bot, err := bot.New(os.Getenv("BOT_TOKEN"), options...)
 	if err != nil {
 		log.Fatalf("err creating bot: %v\n", err)
 	}
+
+	app.B = bot
+
 	log.Println("Starting...")
-	bot.Start(ctx)
+	app.B.Start(ctx)
 }

@@ -9,14 +9,16 @@ import (
 )
 
 type Class struct {
-	ClassID   int64  `json:"class_id"`
-	ClassName string `json:"class_name"`
-	TeacherID int64  `json:"teacher_id"`
+	ClassID   int64              `json:"class_id"`
+	ClassName string             `json:"class_name"`
+	TeacherID int64              `json:"teacher_id"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }
 
 type ClassStudent struct {
-	ClassID   int64 `json:"class_id"`
-	StudentID int64 `json:"student_id"`
+	ClassID   int64              `json:"class_id"`
+	StudentID int64              `json:"student_id"`
+	AddedAt   pgtype.Timestamptz `json:"added_at"`
 }
 
 type ClassTestSet struct {
@@ -46,9 +48,9 @@ type TestSession struct {
 	StudentID int64 `json:"student_id"`
 	TestSetID int64 `json:"test_set_id"`
 	// Unix timestamp
-	StartTime      int64 `json:"start_time"`
-	CorrectCount   int32 `json:"correct_count"`
-	IncorrectCount int32 `json:"incorrect_count"`
+	StartTime      pgtype.Timestamptz `json:"start_time"`
+	CorrectCount   int32              `json:"correct_count"`
+	IncorrectCount int32              `json:"incorrect_count"`
 	// True if all words completed
 	Completed bool `json:"completed"`
 }
@@ -69,8 +71,9 @@ type User struct {
 	FullName   string `json:"full_name"`
 	Username   string `json:"username"`
 	// Must be student or teacher
-	Role  string `json:"role"`
-	Phone int64  `json:"phone"`
+	Role      string             `json:"role"`
+	Phone     int64              `json:"phone"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }
 
 type Word struct {

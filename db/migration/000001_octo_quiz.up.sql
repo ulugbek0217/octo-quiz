@@ -4,18 +4,21 @@ CREATE TABLE "users" (
   "full_name" varchar NOT NULL,
   "username" varchar NOT NULL,
   "role" varchar NOT NULL,
-  "phone" bigint NOT NULL
+  "phone" bigint NOT NULL,
+  "created_at" timestamptz DEFAULT (now())
 );
 
 CREATE TABLE "classes" (
   "class_id" bigserial PRIMARY KEY,
   "class_name" varchar NOT NULL,
-  "teacher_id" bigint NOT NULL
+  "teacher_id" bigint NOT NULL,
+  "created_at" timestamptz DEFAULT (now())
 );
 
 CREATE TABLE "class_students" (
   "class_id" bigint NOT NULL,
   "student_id" bigint NOT NULL,
+  "added_at" timestamptz DEFAULT (now()),
   PRIMARY KEY ("class_id", "student_id")
 );
 
@@ -24,7 +27,7 @@ CREATE TABLE "test_sets" (
   "test_set_name" varchar NOT NULL,
   "creator_id" bigint NOT NULL,
   "is_public" boolean NOT NULL DEFAULT false,
-  "time_limit" integer
+  "time_limit" integer DEFAULT 0
 );
 
 CREATE TABLE "class_test_sets" (
@@ -61,7 +64,7 @@ CREATE TABLE "test_sessions" (
   "session_id" bigserial PRIMARY KEY,
   "student_id" bigint NOT NULL,
   "test_set_id" bigint NOT NULL,
-  "start_time" bigint NOT NULL,
+  "start_time" timestamptz NOT NULL DEFAULT (now()),
   "correct_count" integer NOT NULL DEFAULT 0,
   "incorrect_count" integer NOT NULL DEFAULT 0,
   "completed" boolean NOT NULL DEFAULT false

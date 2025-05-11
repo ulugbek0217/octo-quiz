@@ -7,6 +7,8 @@ package db
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const newTestSession = `-- name: NewTestSession :one
@@ -18,12 +20,12 @@ INSERT INTO test_sessions (
 `
 
 type NewTestSessionParams struct {
-	StudentID      int64 `json:"student_id"`
-	TestSetID      int64 `json:"test_set_id"`
-	StartTime      int64 `json:"start_time"`
-	CorrectCount   int32 `json:"correct_count"`
-	IncorrectCount int32 `json:"incorrect_count"`
-	Completed      bool  `json:"completed"`
+	StudentID      int64              `json:"student_id"`
+	TestSetID      int64              `json:"test_set_id"`
+	StartTime      pgtype.Timestamptz `json:"start_time"`
+	CorrectCount   int32              `json:"correct_count"`
+	IncorrectCount int32              `json:"incorrect_count"`
+	Completed      bool               `json:"completed"`
 }
 
 func (q *Queries) NewTestSession(ctx context.Context, db DBTX, arg NewTestSessionParams) (TestSession, error) {

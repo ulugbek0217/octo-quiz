@@ -14,7 +14,7 @@ INSERT INTO class_students (
     class_id, student_id
 ) VALUES (
     $1, $2
-) RETURNING class_id, student_id
+) RETURNING class_id, student_id, added_at
 `
 
 type AddStudentToClassParams struct {
@@ -25,7 +25,7 @@ type AddStudentToClassParams struct {
 func (q *Queries) AddStudentToClass(ctx context.Context, db DBTX, arg AddStudentToClassParams) (ClassStudent, error) {
 	row := db.QueryRow(ctx, addStudentToClass, arg.ClassID, arg.StudentID)
 	var i ClassStudent
-	err := row.Scan(&i.ClassID, &i.StudentID)
+	err := row.Scan(&i.ClassID, &i.StudentID, &i.AddedAt)
 	return i, err
 }
 
@@ -40,7 +40,7 @@ func (q *Queries) DeleteStudentFromClass(ctx context.Context, db DBTX, studentID
 }
 
 const listClassStudents = `-- name: ListClassStudents :many
-SELECT class_id, student_id FROM class_students
+SELECT class_id, student_id, added_at FROM class_students
 WHERE class_id = $1
 LIMIT $2
 OFFSET $3
@@ -61,7 +61,7 @@ func (q *Queries) ListClassStudents(ctx context.Context, db DBTX, arg ListClassS
 	items := []ClassStudent{}
 	for rows.Next() {
 		var i ClassStudent
-		if err := rows.Scan(&i.ClassID, &i.StudentID); err != nil {
+		if err := rows.Scan(&i.ClassID, &i.StudentID, &i.AddedAt); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

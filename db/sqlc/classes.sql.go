@@ -14,7 +14,7 @@ INSERT INTO classes (
     class_name, teacher_id
 ) VALUES (
     $1, $2
-) RETURNING class_id, class_name, teacher_id
+) RETURNING class_id, class_name, teacher_id, created_at
 `
 
 type CreateClassParams struct {
@@ -25,7 +25,12 @@ type CreateClassParams struct {
 func (q *Queries) CreateClass(ctx context.Context, db DBTX, arg CreateClassParams) (Class, error) {
 	row := db.QueryRow(ctx, createClass, arg.ClassName, arg.TeacherID)
 	var i Class
-	err := row.Scan(&i.ClassID, &i.ClassName, &i.TeacherID)
+	err := row.Scan(
+		&i.ClassID,
+		&i.ClassName,
+		&i.TeacherID,
+		&i.CreatedAt,
+	)
 	return i, err
 }
 
@@ -40,7 +45,7 @@ func (q *Queries) DeleteClass(ctx context.Context, db DBTX, classID int64) error
 }
 
 const listClasses = `-- name: ListClasses :many
-SELECT class_id, class_name, teacher_id FROM classes
+SELECT class_id, class_name, teacher_id, created_at FROM classes
 WHERE teacher_id = $1
 LIMIT $2
 OFFSET $3
@@ -61,7 +66,12 @@ func (q *Queries) ListClasses(ctx context.Context, db DBTX, arg ListClassesParam
 	items := []Class{}
 	for rows.Next() {
 		var i Class
-		if err := rows.Scan(&i.ClassID, &i.ClassName, &i.TeacherID); err != nil {
+		if err := rows.Scan(
+			&i.ClassID,
+			&i.ClassName,
+			&i.TeacherID,
+			&i.CreatedAt,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
