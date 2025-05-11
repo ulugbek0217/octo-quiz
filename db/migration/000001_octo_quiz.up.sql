@@ -4,7 +4,7 @@ CREATE TABLE "users" (
   "full_name" varchar NOT NULL,
   "username" varchar NOT NULL,
   "role" varchar NOT NULL,
-  "phone" bigint NOT NULL,
+  "phone" varchar NOT NULL,
   "created_at" timestamptz DEFAULT (now())
 );
 

@@ -23,7 +23,7 @@ type CreateUserParams struct {
 	FullName   string `json:"full_name"`
 	Username   string `json:"username"`
 	Role       string `json:"role"`
-	Phone      int64  `json:"phone"`
+	Phone      string `json:"phone"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, db DBTX, arg CreateUserParams) (User, error) {

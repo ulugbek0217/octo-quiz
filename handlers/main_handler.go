@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
+	db "github.com/ulugbek0217/octo-quiz/db/sqlc"
 	"github.com/ulugbek0217/octo-quiz/util"
 )
 
@@ -128,7 +129,7 @@ func (app *App) MainHandler(ctx context.Context, b *bot.Bot, u *models.Update) {
 			return
 		}
 		phone := u.Message.Contact.PhoneNumber
-		phone = strings.TrimPrefix(phone, "+")
+		// phone = strings.TrimPrefix(phone, "+")
 
 		log.Print("Got phone: ", phone)
 		app.F.Set(userID, "phone", phone)
@@ -170,6 +171,22 @@ func (app *App) MainHandler(ctx context.Context, b *bot.Bot, u *models.Update) {
 			})
 			app.F.Reset(userID)
 			msgToDelete[userID] = append(msgToDelete[userID], u.CallbackQuery.Message.Message.ID)
+
+			fullName, _ := app.F.Get(userID, "fullName")
+			username, _ := app.F.Get(userID, "username")
+			role, _ := app.F.Get(userID, "role")
+			phone, _ := app.F.Get(userID, "phone")
+			arg := db.CreateUserParams{
+				TelegramID: userID,
+				FullName:   fullName.(string),
+				Username:   username.(string),
+				Role:       role.(string),
+				Phone:      phone.(string),
+			}
+			_, err := app.Store.CreateUser(ctx, app.Store.Pool, arg)
+			if err != nil {
+				log.Fatalf("err creating user: %v\n", err)
+			}
 		}
 		log.Println(msgToDelete)
 		b.DeleteMessages(ctx, &bot.DeleteMessagesParams{

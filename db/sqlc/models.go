@@ -72,7 +72,7 @@ type User struct {
 	Username   string `json:"username"`
 	// Must be student or teacher
 	Role      string             `json:"role"`
-	Phone     int64              `json:"phone"`
+	Phone     string             `json:"phone"`
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }
 

@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
@@ -12,7 +13,7 @@ import (
 
 func (app *App) Start(ctx context.Context, b *bot.Bot, u *models.Update) {
 	msgToDelete[u.Message.From.ID] = append(msgToDelete[u.Message.From.ID], u.Message.ID)
-	if app.isNewUser(u.Message.From.ID) {
+	if _, newUser := app.isNewUser(u.Message.From.ID); newUser {
 		// Transition to StateAskName and trigger the callback
 		app.F.Transition(u.Message.From.ID, StateAskName, u.Message.From.ID, u.Message.Chat.ID)
 		return
@@ -130,7 +131,13 @@ func (app *App) CallbackFinish(f *fsm.FSM, args ...any) {
 	})
 	msgToDelete[userID] = append(msgToDelete[userID], msg.ID)
 }
-func (app *App) isNewUser(userID int64) bool {
-	_, err := app.Store.GetUser(context.Background(), app.Store.Pool, userID)
-	return err == pgx.ErrNoRows
+func (app *App) isNewUser(userID int64) (string, bool) {
+	user, err := app.Store.GetUser(context.Background(), app.Store.Pool, userID)
+	if err == pgx.ErrNoRows {
+		return "", true
+	} else if err == nil {
+		return user.Role, false
+	}
+	log.Fatalf("err getting user from db: %v\n", err)
+	return "", false
 }
