@@ -1,6 +1,6 @@
 CREATE TABLE "users" (
-  "user_id" bigint PRIMARY KEY,
-  "telegram_id" bigint NOT NULL,
+  "user_id" bigint PRIMARY KEY NOT NULL,
+  "telegram_username" varchar,
   "full_name" varchar NOT NULL,
   "username" varchar NOT NULL,
   "role" varchar NOT NULL,
@@ -70,7 +70,7 @@ CREATE TABLE "test_sessions" (
   "completed" boolean NOT NULL DEFAULT false
 );
 
-CREATE UNIQUE INDEX ON "users" ("telegram_id", "username", "phone");
+CREATE UNIQUE INDEX ON "users" ("user_id", "username", "phone");
 
 CREATE UNIQUE INDEX ON "words" ("words_id", "test_set_id");
 

@@ -54,6 +54,37 @@ func (q *Queries) DeleteTestSet(ctx context.Context, db DBTX, testSetID int64) e
 	return err
 }
 
+const getTestSetByCreatorID = `-- name: GetTestSetByCreatorID :many
+SELECT test_set_id, test_set_name, creator_id, is_public, time_limit FROM test_sets
+WHERE creator_id = $1
+`
+
+func (q *Queries) GetTestSetByCreatorID(ctx context.Context, db DBTX, creatorID int64) ([]TestSet, error) {
+	rows, err := db.Query(ctx, getTestSetByCreatorID, creatorID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []TestSet{}
+	for rows.Next() {
+		var i TestSet
+		if err := rows.Scan(
+			&i.TestSetID,
+			&i.TestSetName,
+			&i.CreatorID,
+			&i.IsPublic,
+			&i.TimeLimit,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const makeTestSetPublic = `-- name: MakeTestSetPublic :exec
 UPDATE test_sets
 SET is_public = TRUE

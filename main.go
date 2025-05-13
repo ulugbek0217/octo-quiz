@@ -23,7 +23,7 @@ func main() {
 	}
 
 	dbPath := os.Getenv("DB_URL")
-	rootID, err := strconv.ParseInt(os.Getenv("ROOT"), 10, 64)
+	rootID, err := strconv.ParseInt(os.Getenv("ROOT_USER"), 10, 64)
 	if err != nil {
 		log.Fatalf("couldn't parse root id: %v\n", err)
 	}
@@ -47,15 +47,22 @@ func main() {
 	app.F = fsm.New(
 		handlers.StateDefault,
 		map[fsm.StateID]fsm.Callback{
-			handlers.StateAskName:     app.CallbackName,
-			handlers.StateAskUsername: app.CallbackUsername,
-			handlers.StateAskRole:     app.CallbackRole,
-			handlers.StateAskPhone:    app.CallbackPhone,
-			handlers.StateFinish:      app.CallbackFinish,
+			handlers.StateAskName:            app.CallbackName,
+			handlers.StateAskUsername:        app.CallbackUsername,
+			handlers.StateAskRole:            app.CallbackRole,
+			handlers.StateAskPhone:           app.CallbackPhone,
+			handlers.StateFinishRegistration: app.CallbackFinish,
+
+			handlers.StateAskTestSetName:               app.CallbackTestSetName,
+			handlers.StateAskTestSetType:               app.CallbackTestSetType,
+			handlers.StateAskTestSetTimeLimitAndFinish: app.CallbackTestSetTimeLimit,
+			handlers.StateFinishTestSetCreating:        app.CallbackFinishTestSetCreating,
 		},
 	)
 	options := []bot.Option{
 		bot.WithMessageTextHandler("/start", bot.MatchTypeExact, app.Start),
+		bot.WithCallbackQueryDataHandler("create_test_set", bot.MatchTypeExact, app.CreateTestSet),
+		// bot.WithCallbackQueryDataHandler("teacher_test_sets_list", bot.MatchTypeExact, app.TeacherTestSetsList),
 		bot.WithDefaultHandler(app.MainHandler),
 		// bot.WithWorkers(10),
 	}

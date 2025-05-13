@@ -5,6 +5,10 @@ INSERT INTO test_sets (
     $1, $2, $3, $4
 ) RETURNING *;
 
+-- name: GetTestSetByCreatorID :many
+SELECT * FROM test_sets
+WHERE creator_id = $1;
+
 -- name: DeleteTestSet :exec
 DELETE FROM test_sets
 WHERE test_set_id = $1;

@@ -16,5 +16,7 @@ sql:
           - db_type: "text"
             go_type:
               type: "string"  # Explicitly specify the type as a string
-            nullable: true    # Match the schema (nullable TEXT)
             # This ensures NULL -> "" conversion
+          - db_type: "int4"
+            go_type:
+              type: "int32"

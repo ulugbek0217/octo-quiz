@@ -1,0 +1,20 @@
+{
+    "buttons": [
+        [
+            {
+                "text": "Test sets",
+                "callback_data": "teacher_test_sets_list"
+            },
+            {
+                "text": "Create test set",
+                "callback_data": "create_test_set"
+            }
+        ],
+        [
+            {
+                "text": "Classes",
+                "callback_data": "classes"
+            }
+        ]
+    ]
+}

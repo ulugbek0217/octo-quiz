@@ -66,10 +66,10 @@ type TestSet struct {
 
 // CHECK (role IN ("student", "teacher"))
 type User struct {
-	UserID     int64  `json:"user_id"`
-	TelegramID int64  `json:"telegram_id"`
-	FullName   string `json:"full_name"`
-	Username   string `json:"username"`
+	UserID           int64       `json:"user_id"`
+	TelegramUsername pgtype.Text `json:"telegram_username"`
+	FullName         string      `json:"full_name"`
+	Username         string      `json:"username"`
 	// Must be student or teacher
 	Role      string             `json:"role"`
 	Phone     string             `json:"phone"`

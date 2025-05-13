@@ -1,10 +1,10 @@
 postgres:
-	docker run -d --name octo_db -p 5465:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=secret postgres:16-alpine
+	docker run -d --name octo_quiz -p 5465:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=secret postgres:16-alpine
 
 createdb:
-	docker exec -it octo_db createdb --username=root --owner=root octo_quiz
+	docker exec -it octo_quiz createdb --username=root --owner=root octo_quiz
 dropdb:
-	docker exec -it octo_db dropdb octo_quiz
+	docker exec -it octo_quiz dropdb octo_quiz
 
 migrateup:
 	migrate -path db/migration -database "postgresql://root:secret@localhost:5465/octo_quiz?sslmode=disable" -verbose up

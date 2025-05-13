@@ -7,28 +7,32 @@ package db
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (
-    telegram_id, full_name, username, "role", phone
+    user_id, telegram_username, full_name, username, "role", phone
 ) VALUES (
-    $1, $2, $3, $4, $5
+    $1, $2, $3, $4, $5, $6
 )
-RETURNING user_id, telegram_id, full_name, username, role, phone, created_at
+RETURNING user_id, telegram_username, full_name, username, role, phone, created_at
 `
 
 type CreateUserParams struct {
-	TelegramID int64  `json:"telegram_id"`
-	FullName   string `json:"full_name"`
-	Username   string `json:"username"`
-	Role       string `json:"role"`
-	Phone      string `json:"phone"`
+	UserID           int64       `json:"user_id"`
+	TelegramUsername pgtype.Text `json:"telegram_username"`
+	FullName         string      `json:"full_name"`
+	Username         string      `json:"username"`
+	Role             string      `json:"role"`
+	Phone            string      `json:"phone"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, db DBTX, arg CreateUserParams) (User, error) {
 	row := db.QueryRow(ctx, createUser,
-		arg.TelegramID,
+		arg.UserID,
+		arg.TelegramUsername,
 		arg.FullName,
 		arg.Username,
 		arg.Role,
@@ -37,7 +41,7 @@ func (q *Queries) CreateUser(ctx context.Context, db DBTX, arg CreateUserParams)
 	var i User
 	err := row.Scan(
 		&i.UserID,
-		&i.TelegramID,
+		&i.TelegramUsername,
 		&i.FullName,
 		&i.Username,
 		&i.Role,
@@ -58,7 +62,7 @@ func (q *Queries) DeleteUser(ctx context.Context, db DBTX, userID int64) error {
 }
 
 const getUser = `-- name: GetUser :one
-SELECT user_id, telegram_id, full_name, username, role, phone, created_at FROM users
+SELECT user_id, telegram_username, full_name, username, role, phone, created_at FROM users
 WHERE user_id = $1
 LIMIT 1
 `
@@ -68,7 +72,7 @@ func (q *Queries) GetUser(ctx context.Context, db DBTX, userID int64) (User, err
 	var i User
 	err := row.Scan(
 		&i.UserID,
-		&i.TelegramID,
+		&i.TelegramUsername,
 		&i.FullName,
 		&i.Username,
 		&i.Role,
