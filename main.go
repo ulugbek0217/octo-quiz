@@ -56,12 +56,13 @@ func main() {
 			handlers.StateAskTestSetName:               app.CallbackTestSetName,
 			handlers.StateAskTestSetType:               app.CallbackTestSetType,
 			handlers.StateAskTestSetTimeLimitAndFinish: app.CallbackTestSetTimeLimit,
-			handlers.StateFinishTestSetCreating:        app.CallbackFinishTestSetCreating,
+			// handlers.StateFinishTestSetCreating:        app.CallbackFinishTestSetCreating,
 		},
 	)
 	options := []bot.Option{
 		bot.WithMessageTextHandler("/start", bot.MatchTypeExact, app.Start),
 		bot.WithCallbackQueryDataHandler("create_test_set", bot.MatchTypeExact, app.CreateTestSet),
+		bot.WithCallbackQueryDataHandler("test_sets_page", bot.MatchTypePrefix, app.TeacherTestSetsList),
 		// bot.WithCallbackQueryDataHandler("teacher_test_sets_list", bot.MatchTypeExact, app.TeacherTestSetsList),
 		bot.WithDefaultHandler(app.MainHandler),
 		// bot.WithWorkers(10),

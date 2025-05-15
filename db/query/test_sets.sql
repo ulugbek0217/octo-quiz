@@ -5,8 +5,14 @@ INSERT INTO test_sets (
     $1, $2, $3, $4
 ) RETURNING *;
 
--- name: GetTestSetByCreatorID :many
+-- name: GetTestSetsByCreatorID :many
 SELECT * FROM test_sets
+WHERE creator_id = $1
+LIMIT $2
+OFFSET $3;
+
+-- name: GetTestSetsCount :one
+SELECT COUNT(*) FROM test_sets
 WHERE creator_id = $1;
 
 -- name: DeleteTestSet :exec

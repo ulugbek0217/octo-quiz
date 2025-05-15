@@ -3,7 +3,7 @@
         [
             {
                 "text": "Test sets",
-                "callback_data": "teacher_test_sets_list"
+                "callback_data": "test_sets_page_0"
             },
             {
                 "text": "Create test set",

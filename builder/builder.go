@@ -3,6 +3,7 @@ package builder
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/go-telegram/bot/models"
@@ -62,4 +63,43 @@ func (b *InlineKeyboardBuilder) Build() *models.InlineKeyboardMarkup {
 	}
 
 	return markup
+}
+
+func InlineKeyboardPaginator(testSetsID []int64, offSet int32, isLastPage bool) *models.InlineKeyboardMarkup {
+	markup := &models.InlineKeyboardMarkup{
+		InlineKeyboard: make([][]models.InlineKeyboardButton, 3),
+	}
+	markup.InlineKeyboard[0] = make([]models.InlineKeyboardButton, 0, len(testSetsID))
+	for id, testSetID := range testSetsID {
+		fmt.Printf("paginator test id: %d\n", id)
+		button := models.InlineKeyboardButton{
+			Text:         fmt.Sprintf("%d", int(offSet)+id+1),
+			CallbackData: fmt.Sprintf("teacher_test_set_%d", testSetID),
+		}
+		markup.InlineKeyboard[0] = append(markup.InlineKeyboard[0], button)
+	}
+	markup.InlineKeyboard[1] = make([]models.InlineKeyboardButton, 2)
+
+	if offSet >= 5 {
+		markup.InlineKeyboard[1][0] = models.InlineKeyboardButton{
+			Text:         "Prev",
+			CallbackData: fmt.Sprintf("test_sets_page_%d", offSet-5),
+		}
+	}
+	if !isLastPage {
+		markup.InlineKeyboard[1][1] = models.InlineKeyboardButton{
+			Text:         "Next",
+			CallbackData: fmt.Sprintf("test_sets_page_%d", offSet+5),
+		}
+	}
+
+	markup.InlineKeyboard[2] = make([]models.InlineKeyboardButton, 1)
+
+	markup.InlineKeyboard[2][0] = models.InlineKeyboardButton{
+		Text:         "Dashboard",
+		CallbackData: "dashboard",
+	}
+	log.Println("Paginator before return")
+	return markup
+
 }

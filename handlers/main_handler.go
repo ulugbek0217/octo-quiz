@@ -38,7 +38,7 @@ func (app *App) MainHandler(ctx context.Context, b *bot.Bot, u *models.Update) {
 
 	switch state {
 	case StateDefault:
-		app.DashBoard(ctx, chatID)
+		app.DashBoard(ctx, b, u, chatID)
 	case StateAskName:
 		app.askName(ctx, u, userID, chatID)
 	case StateAskUsername:
@@ -244,7 +244,7 @@ func (app *App) registrationFinish(ctx context.Context, u *models.Update, args .
 		MessageIDs: msgToDelete[userID],
 	})
 	delete(msgToDelete, userID)
-	app.DashBoard(ctx, chatID)
+	app.DashBoard(ctx, app.B, u, chatID)
 }
 
 func (app *App) testSetName(ctx context.Context, u *models.Update, args ...any) {
@@ -279,6 +279,9 @@ func (app *App) testSetType(ctx context.Context, u *models.Update, args ...any) 
 		msgToDelete[userID] = append(msgToDelete[userID], msg.ID)
 		return
 	}
+	app.B.AnswerCallbackQuery(ctx, &bot.AnswerCallbackQueryParams{
+		CallbackQueryID: u.CallbackQuery.ID,
+	})
 	testType := strings.TrimPrefix(u.CallbackQuery.Data, "test_set_type_")
 	log.Printf("New test set type: %s\n", testType)
 	app.F.Set(userID, "new_test_set_type", testType)
@@ -337,7 +340,7 @@ func (app *App) testSetTimeLimitAndFinish(ctx context.Context, u *models.Update,
 	// app.F.Set(userID, "new_test_set_time_limit", timeLimit)
 	msgToDelete[userID] = append(msgToDelete[userID], u.Message.ID)
 	app.F.Transition(userID, StateDefault, userID, chatID)
-	app.DashBoard(ctx, chatID)
+	app.DashBoard(ctx, app.B, u, chatID)
 	app.B.DeleteMessages(ctx, &bot.DeleteMessagesParams{
 		ChatID:     chatID,
 		MessageIDs: msgToDelete[userID],
