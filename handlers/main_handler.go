@@ -56,6 +56,8 @@ func (app *App) MainHandler(ctx context.Context, b *bot.Bot, u *models.Update) {
 		app.testSetType(ctx, u, userID, chatID)
 	case StateAskTestSetTimeLimitAndFinish:
 		app.testSetTimeLimitAndFinish(ctx, u, userID, chatID)
+	case StateInsertWordsIntoTestSet:
+		app.insertWordsIntoTestSet(ctx, u, userID, chatID)
 	default:
 		log.Printf("Unexpected state: %s", state)
 		b.SendMessage(ctx, &bot.SendMessageParams{
@@ -357,20 +359,20 @@ func (app *App) insertWordsIntoTestSet(ctx context.Context, u *models.Update, ar
 	userID := args[0].(int64)
 	chatID := args[1].(int64)
 
+	testSetID, ok := app.F.Get(userID, "insert_words_into")
+	if !ok {
+		app.B.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID: chatID,
+			Text:   "error getting test id to insert into",
+		})
+		return
+	}
 	userMessage := u.Message.Text
 	wordLines := strings.Split(userMessage, "\n")
 	// var wordsMap map[string]string
 
 	for _, line := range wordLines {
 		words := strings.Split(line, "#")
-		testSetID, ok := app.F.Get(userID, "insert_words_into")
-		if !ok {
-			app.B.SendMessage(ctx, &bot.SendMessageParams{
-				ChatID: chatID,
-				Text:   "error getting test id to insert into",
-			})
-			return
-		}
 		app.WG.Add(1)
 		go func() {
 			defer app.WG.Done()
@@ -389,15 +391,15 @@ func (app *App) insertWordsIntoTestSet(ctx context.Context, u *models.Update, ar
 	}
 	app.WG.Wait()
 
-	keyboard, err := builder.NewInlineKeyboardBuilder(builder.KeyboardFinishOrInsertWordsButtons)
-	if err != nil {
-		log.Fatalf("err building keyboard: %v\n", err)
-	}
-	markup := keyboard.Build()
+	// keyboard, err := builder.NewInlineKeyboardBuilderFromJson(builder.KeyboardFinishOrInsertWordsButtons)
+	// if err != nil {
+	// 	log.Fatalf("err building keyboard: %v\n", err)
+	// }
+	// markup := keyboard.Build()
 	app.B.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID:      chatID,
 		Text:        "So'zlar saqlandi ✅",
-		ReplyMarkup: markup,
+		ReplyMarkup: builder.TeacherInlineKeyboardInsertWordsOrFinish(testSetID.(int64)),
 	})
 }
 

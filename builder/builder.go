@@ -32,8 +32,8 @@ type InlineKeyboardBuilder struct {
 	config InlineKeyboardConfig
 }
 
-// NewInlineKeyboardBuilder creates a new builder instance from a JSON file
-func NewInlineKeyboardBuilder(inlineKeyboard string) (*InlineKeyboardBuilder, error) {
+// NewInlineKeyboardBuilderFromJson creates a new builder instance from a JSON file
+func NewInlineKeyboardBuilderFromJson(inlineKeyboard string) (*InlineKeyboardBuilder, error) {
 	configData, err := os.ReadFile(fmt.Sprintf("builder/%s.json", inlineKeyboard))
 	if err != nil {
 		return nil, err
@@ -66,7 +66,7 @@ func (b *InlineKeyboardBuilder) Build() *models.InlineKeyboardMarkup {
 	return markup
 }
 
-func InlineKeyboardPaginator(testSetsID []int64, offSet int32, isLastPage bool) *models.InlineKeyboardMarkup {
+func TeacherInlineKeyboardPaginator(testSetsID []int64, offSet int32, isLastPage bool) *models.InlineKeyboardMarkup {
 	markup := &models.InlineKeyboardMarkup{
 		InlineKeyboard: make([][]models.InlineKeyboardButton, 3),
 	}
@@ -103,4 +103,52 @@ func InlineKeyboardPaginator(testSetsID []int64, offSet int32, isLastPage bool) 
 	log.Println("Paginator before return")
 	return markup
 
+}
+
+func TeacherInlineKeyboardTestSetOptions(testSetID int64) *models.InlineKeyboardMarkup {
+	markup := &models.InlineKeyboardMarkup{
+		InlineKeyboard: [][]models.InlineKeyboardButton{
+			{
+				{
+					Text:         "So'z qo'shish",
+					CallbackData: fmt.Sprintf("insert_words_into_%d", testSetID),
+				},
+			},
+			{
+				{
+					Text:         "Test to'plamini o'chirish",
+					CallbackData: fmt.Sprintf("delete_test_set_%d", testSetID),
+				},
+			},
+			{
+				{
+					Text:         "Ortga",
+					CallbackData: "test_sets_page_0",
+				},
+			},
+		},
+	}
+
+	return markup
+}
+
+func TeacherInlineKeyboardInsertWordsOrFinish(testSetID int64) *models.InlineKeyboardMarkup {
+	markup := &models.InlineKeyboardMarkup{
+		InlineKeyboard: [][]models.InlineKeyboardButton{
+			{
+				{
+					Text:         "Yana kiritish",
+					CallbackData: "insert_more_words",
+				},
+			},
+			{
+				{
+					Text:         "Yakunlash",
+					CallbackData: fmt.Sprintf("finish_inserting_words_into_%d", testSetID),
+				},
+			},
+		},
+	}
+
+	return markup
 }

@@ -20,6 +20,7 @@ type Querier interface {
 	DeleteTestSetFromClass(ctx context.Context, db DBTX, testSetID int64) error
 	DeleteUser(ctx context.Context, db DBTX, userID int64) error
 	DeleteWords(ctx context.Context, db DBTX, wordsID int64) error
+	GetTestSetByID(ctx context.Context, db DBTX, testSetID int64) (TestSet, error)
 	GetTestSetsByCreatorID(ctx context.Context, db DBTX, arg GetTestSetsByCreatorIDParams) ([]TestSet, error)
 	GetTestSetsCount(ctx context.Context, db DBTX, creatorID int64) (int64, error)
 	GetUser(ctx context.Context, db DBTX, userID int64) (User, error)

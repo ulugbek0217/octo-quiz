@@ -73,7 +73,7 @@ func (app *App) TeacherTestSetsList(ctx context.Context, b *bot.Bot, u *models.U
 	msg, err := b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID:      chatID,
 		Text:        testSetNames,
-		ReplyMarkup: builder.InlineKeyboardPaginator(ids, arg.Offset, isLastPage),
+		ReplyMarkup: builder.TeacherInlineKeyboardPaginator(ids, arg.Offset, isLastPage),
 	})
 	if err != nil {
 		log.Printf("err sending sets list: %v\n", err)
@@ -85,6 +85,32 @@ func (app *App) TeacherTestSetsList(ctx context.Context, b *bot.Bot, u *models.U
 	msgToDelete[userID] = append(msgToDelete[userID], msg.ID)
 }
 
+func (app *App) TeacherTestSetOptions(ctx context.Context, b *bot.Bot, u *models.Update) {
+	if u.CallbackQuery == nil {
+		return
+	}
+
+	testSetID, err := strconv.ParseInt(strings.TrimPrefix(u.CallbackQuery.Data, "teacher_test_set_"), 10, 64)
+	if err != nil {
+		log.Fatalf("err converting test set id: %v\n", err)
+	}
+
+	userID := u.CallbackQuery.From.ID
+
+	testSet, err := app.Store.GetTestSetByID(ctx, app.Store.Pool, testSetID)
+	if err != nil {
+		log.Fatalf("err getting test set from db: %v\n", err)
+	}
+
+	b.EditMessageText(ctx, &bot.EditMessageTextParams{
+		ChatID:      userID,
+		MessageID:   u.CallbackQuery.Message.Message.ID,
+		Text:        testSet.TestSetName,
+		ReplyMarkup: builder.TeacherInlineKeyboardTestSetOptions(testSetID),
+	})
+
+}
+
 func (app *App) InsertWordsIntoTestSet(ctx context.Context, b *bot.Bot, u *models.Update) {
 	if u.CallbackQuery == nil {
 		return
@@ -93,4 +119,22 @@ func (app *App) InsertWordsIntoTestSet(ctx context.Context, b *bot.Bot, u *model
 	chatID := userID
 
 	app.F.Transition(userID, StateInsertWordsIntoTestSet, userID, chatID)
+}
+
+func (app *App) FinishInsertingWords(ctx context.Context, b *bot.Bot, u *models.Update) {
+	if u.CallbackQuery == nil {
+		return
+	}
+
+	b.AnswerCallbackQuery(ctx, &bot.AnswerCallbackQueryParams{
+		CallbackQueryID: u.CallbackQuery.ID,
+		Text:            "Saqlandi ✅",
+	})
+
+	app.F.Transition(u.CallbackQuery.From.ID, StateDefault)
+	app.TeacherTestSetOptions(ctx, b, u)
+}
+
+func (app *App) TeacherFinishWordInserting(ctx context.Context, b *bot.Bot, u *models.Update) {
+
 }

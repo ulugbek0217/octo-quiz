@@ -44,9 +44,9 @@ func (app *App) DashBoard(ctx context.Context, b *bot.Bot, u *models.Update, arg
 		MessageIDs: msgToDelete[user.UserID],
 	})
 
-	kbd, err := builder.NewInlineKeyboardBuilder(builder.KeyboardStudentMainMenuInlineButtons)
+	kbd, err := builder.NewInlineKeyboardBuilderFromJson(builder.KeyboardStudentMainMenuInlineButtons)
 	if user.Role == "teacher" {
-		kbd, err = builder.NewInlineKeyboardBuilder(builder.KeyboardTeacherMainMenuInlineButtons)
+		kbd, err = builder.NewInlineKeyboardBuilderFromJson(builder.KeyboardTeacherMainMenuInlineButtons)
 	}
 	if err != nil {
 		log.Fatal(err)

@@ -54,6 +54,24 @@ func (q *Queries) DeleteTestSet(ctx context.Context, db DBTX, testSetID int64) e
 	return err
 }
 
+const getTestSetByID = `-- name: GetTestSetByID :one
+SELECT test_set_id, test_set_name, creator_id, is_public, time_limit FROM test_sets
+WHERE test_set_id = $1
+`
+
+func (q *Queries) GetTestSetByID(ctx context.Context, db DBTX, testSetID int64) (TestSet, error) {
+	row := db.QueryRow(ctx, getTestSetByID, testSetID)
+	var i TestSet
+	err := row.Scan(
+		&i.TestSetID,
+		&i.TestSetName,
+		&i.CreatorID,
+		&i.IsPublic,
+		&i.TimeLimit,
+	)
+	return i, err
+}
+
 const getTestSetsByCreatorID = `-- name: GetTestSetsByCreatorID :many
 SELECT test_set_id, test_set_name, creator_id, is_public, time_limit FROM test_sets
 WHERE creator_id = $1

@@ -11,6 +11,10 @@ WHERE creator_id = $1
 LIMIT $2
 OFFSET $3;
 
+-- name: GetTestSetByID :one
+SELECT * FROM test_sets
+WHERE test_set_id = $1;
+
 -- name: GetTestSetsCount :one
 SELECT COUNT(*) FROM test_sets
 WHERE creator_id = $1;
