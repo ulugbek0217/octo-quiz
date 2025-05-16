@@ -10,9 +10,10 @@ import (
 )
 
 const (
-	StudentMainMenuInlineButtons string = "student_main_menu_inline_buttons"
-	StudentTestNameInlineButton  string = "student_test_Name"
-	TeacherMainMenuInlineButtons string = "teacher_main_menu_inline_buttons"
+	KeyboardStudentMainMenuInlineButtons string = "student_main_menu_inline_buttons"
+	KeyboardTeacherMainMenuInlineButtons string = "teacher_main_menu_inline_buttons"
+
+	KeyboardFinishOrInsertWordsButtons string = "teacher_finish_or_insert_words"
 )
 
 // InlineKeyboardButton represents a single button in the inline keyboard

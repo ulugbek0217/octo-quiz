@@ -10,6 +10,7 @@ import (
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/ulugbek0217/octo-quiz/builder"
 	db "github.com/ulugbek0217/octo-quiz/db/sqlc"
 	"github.com/ulugbek0217/octo-quiz/util"
 )
@@ -346,6 +347,58 @@ func (app *App) testSetTimeLimitAndFinish(ctx context.Context, u *models.Update,
 		MessageIDs: msgToDelete[userID],
 	})
 	delete(msgToDelete, userID)
+}
+
+func (app *App) insertWordsIntoTestSet(ctx context.Context, u *models.Update, args ...any) {
+	if u.Message == nil {
+		return
+	}
+
+	userID := args[0].(int64)
+	chatID := args[1].(int64)
+
+	userMessage := u.Message.Text
+	wordLines := strings.Split(userMessage, "\n")
+	// var wordsMap map[string]string
+
+	for _, line := range wordLines {
+		words := strings.Split(line, "#")
+		testSetID, ok := app.F.Get(userID, "insert_words_into")
+		if !ok {
+			app.B.SendMessage(ctx, &bot.SendMessageParams{
+				ChatID: chatID,
+				Text:   "error getting test id to insert into",
+			})
+			return
+		}
+		app.WG.Add(1)
+		go func() {
+			defer app.WG.Done()
+			arg := db.InsertWordsParams{
+				TestSetID:   testSetID.(int64),
+				EnglishWord: words[0],
+				UzbekWord:   words[1],
+			}
+
+			_, err := app.Store.InsertWords(ctx, app.Store.Pool, arg)
+			if err != nil {
+				log.Fatalf("error inserting words [%s, %s]: %v\n", words[0], words[1], err)
+			}
+		}()
+		// wordsMap[words[0]] = words[1]
+	}
+	app.WG.Wait()
+
+	keyboard, err := builder.NewInlineKeyboardBuilder(builder.KeyboardFinishOrInsertWordsButtons)
+	if err != nil {
+		log.Fatalf("err building keyboard: %v\n", err)
+	}
+	markup := keyboard.Build()
+	app.B.SendMessage(ctx, &bot.SendMessageParams{
+		ChatID:      chatID,
+		Text:        "So'zlar saqlandi ✅",
+		ReplyMarkup: markup,
+	})
 }
 
 // func (app *App) testSetCreatingFinish(ctx context.Context, u *models.Update, args ...any) {

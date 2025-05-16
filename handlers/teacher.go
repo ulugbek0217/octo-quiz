@@ -84,3 +84,13 @@ func (app *App) TeacherTestSetsList(ctx context.Context, b *bot.Bot, u *models.U
 	})
 	msgToDelete[userID] = append(msgToDelete[userID], msg.ID)
 }
+
+func (app *App) InsertWordsIntoTestSet(ctx context.Context, b *bot.Bot, u *models.Update) {
+	if u.CallbackQuery == nil {
+		return
+	}
+	userID := u.CallbackQuery.From.ID
+	chatID := userID
+
+	app.F.Transition(userID, StateInsertWordsIntoTestSet, userID, chatID)
+}

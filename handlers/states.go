@@ -9,6 +9,24 @@ import (
 	"github.com/go-telegram/fsm"
 )
 
+// Available user states
+const (
+	StateDefault fsm.StateID = "default"
+	// StateStart       fsm.StateID = "start"
+	StateAskName            fsm.StateID = "ask_name"
+	StateAskUsername        fsm.StateID = "ask_username"
+	StateAskRole            fsm.StateID = "ask_role"
+	StateAskPhone           fsm.StateID = "ask_phone"
+	StateFinishRegistration fsm.StateID = "finish_registration"
+
+	StateAskTestSetName               fsm.StateID = "ask_test_set_name"
+	StateAskTestSetType               fsm.StateID = "ask_test_set_type"
+	StateAskTestSetTimeLimitAndFinish fsm.StateID = "ask_test_set_time_limit_and_finish"
+
+	StateInsertWordsIntoTestSet          fsm.StateID = "insert_words_into_test_set"
+	StateFinishInsertingWordsIntoTestSet fsm.StateID = "finish_inserting_words_into_test_set"
+)
+
 func (app *App) CallbackName(f *fsm.FSM, args ...any) {
 	userID := args[0].(int64)
 	chatID := args[1].(int64)
@@ -174,6 +192,18 @@ func (app *App) CallbackFinishTestSetCreating(f *fsm.FSM, args ...any) {
 	msg, _ := app.B.SendMessage(context.Background(), &bot.SendMessageParams{
 		ChatID: chatID,
 		Text:   "Test to'plami yaratildi.",
+	})
+
+	msgToDelete[userID] = append(msgToDelete[userID], msg.ID)
+}
+
+func (app *App) CallbackWaitForWords(f *fsm.FSM, args ...any) {
+	userID := args[0].(int64)
+	chatID := args[1].(int64)
+
+	msg, _ := app.B.SendMessage(context.Background(), &bot.SendMessageParams{
+		ChatID: chatID,
+		Text:   "Ushbu test to'plami uchun so'zlarni kiriting.\nFormat: en#uz",
 	})
 
 	msgToDelete[userID] = append(msgToDelete[userID], msg.ID)
