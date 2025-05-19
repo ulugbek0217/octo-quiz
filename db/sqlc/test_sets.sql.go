@@ -72,21 +72,33 @@ func (q *Queries) GetTestSetByID(ctx context.Context, db DBTX, testSetID int64) 
 	return i, err
 }
 
-const getTestSetsByCreatorID = `-- name: GetTestSetsByCreatorID :many
+const getTestSetsCount = `-- name: GetTestSetsCount :one
+SELECT COUNT(*) FROM test_sets
+WHERE creator_id = $1
+`
+
+func (q *Queries) GetTestSetsCount(ctx context.Context, db DBTX, creatorID int64) (int64, error) {
+	row := db.QueryRow(ctx, getTestSetsCount, creatorID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const listTestSetsByCreatorID = `-- name: ListTestSetsByCreatorID :many
 SELECT test_set_id, test_set_name, creator_id, is_public, time_limit FROM test_sets
 WHERE creator_id = $1
 LIMIT $2
 OFFSET $3
 `
 
-type GetTestSetsByCreatorIDParams struct {
+type ListTestSetsByCreatorIDParams struct {
 	CreatorID int64 `json:"creator_id"`
 	Limit     int32 `json:"limit"`
 	Offset    int32 `json:"offset"`
 }
 
-func (q *Queries) GetTestSetsByCreatorID(ctx context.Context, db DBTX, arg GetTestSetsByCreatorIDParams) ([]TestSet, error) {
-	rows, err := db.Query(ctx, getTestSetsByCreatorID, arg.CreatorID, arg.Limit, arg.Offset)
+func (q *Queries) ListTestSetsByCreatorID(ctx context.Context, db DBTX, arg ListTestSetsByCreatorIDParams) ([]TestSet, error) {
+	rows, err := db.Query(ctx, listTestSetsByCreatorID, arg.CreatorID, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -109,18 +121,6 @@ func (q *Queries) GetTestSetsByCreatorID(ctx context.Context, db DBTX, arg GetTe
 		return nil, err
 	}
 	return items, nil
-}
-
-const getTestSetsCount = `-- name: GetTestSetsCount :one
-SELECT COUNT(*) FROM test_sets
-WHERE creator_id = $1
-`
-
-func (q *Queries) GetTestSetsCount(ctx context.Context, db DBTX, creatorID int64) (int64, error) {
-	row := db.QueryRow(ctx, getTestSetsCount, creatorID)
-	var count int64
-	err := row.Scan(&count)
-	return count, err
 }
 
 const makeTestSetPublic = `-- name: MakeTestSetPublic :exec

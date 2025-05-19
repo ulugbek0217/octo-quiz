@@ -27,7 +27,6 @@ func (app *App) Start(ctx context.Context, b *bot.Bot, u *models.Update) {
 }
 
 func (app *App) DashBoard(ctx context.Context, b *bot.Bot, u *models.Update, args ...any) {
-
 	var chatID int64
 	if len(args) != 0 {
 		chatID = args[0].(int64)
@@ -39,10 +38,6 @@ func (app *App) DashBoard(ctx context.Context, b *bot.Bot, u *models.Update, arg
 	if u.CallbackQuery != nil {
 		msgToDelete[user.UserID] = append(msgToDelete[user.UserID], u.CallbackQuery.Message.Message.ID)
 	}
-	b.DeleteMessages(ctx, &bot.DeleteMessagesParams{
-		ChatID:     chatID,
-		MessageIDs: msgToDelete[user.UserID],
-	})
 
 	kbd, err := builder.NewInlineKeyboardBuilderFromJson(builder.KeyboardStudentMainMenuInlineButtons)
 	if user.Role == "teacher" {
@@ -56,6 +51,11 @@ func (app *App) DashBoard(ctx context.Context, b *bot.Bot, u *models.Update, arg
 		ChatID:      chatID,
 		Text:        "Ishchi stol\n\nDashboard",
 		ReplyMarkup: markup,
+	})
+
+	b.DeleteMessages(ctx, &bot.DeleteMessagesParams{
+		ChatID:     chatID,
+		MessageIDs: msgToDelete[user.UserID],
 	})
 }
 

@@ -2,18 +2,22 @@
     "buttons": [
         [
             {
-                "text": "Test sets",
+                "text": "Testlar ro'yxati",
                 "callback_data": "test_sets_page_0"
             },
             {
-                "text": "Create test set",
+                "text": "Test to'plami yaratish",
                 "callback_data": "create_test_set"
             }
         ],
         [
             {
-                "text": "Classes",
-                "callback_data": "classes"
+                "text": "Sinflar ro'yxati",
+                "callback_data": "teacher_classes_page_0"
+            },
+            {
+                "text": "Sinf yaratish",
+                "callback_data": "teacher_create_class"
             }
         ]
     ]

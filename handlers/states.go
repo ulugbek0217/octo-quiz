@@ -25,6 +25,8 @@ const (
 
 	StateInsertWordsIntoTestSet          fsm.StateID = "insert_words_into_test_set"
 	StateFinishInsertingWordsIntoTestSet fsm.StateID = "finish_inserting_words_into_test_set"
+
+	StateAskClassName fsm.StateID = "ask_class_name"
 )
 
 func (app *App) CallbackName(f *fsm.FSM, args ...any) {
@@ -204,6 +206,17 @@ func (app *App) CallbackWaitForWords(f *fsm.FSM, args ...any) {
 	msg, _ := app.B.SendMessage(context.Background(), &bot.SendMessageParams{
 		ChatID: chatID,
 		Text:   "Ushbu test to'plami uchun so'zlarni kiriting.\nFormat: en#uz",
+	})
+
+	msgToDelete[userID] = append(msgToDelete[userID], msg.ID)
+}
+
+func (app *App) CallbackAskClassName(f *fsm.FSM, args ...any) {
+	userID := args[0].(int64)
+
+	msg, _ := app.B.SendMessage(context.Background(), &bot.SendMessageParams{
+		ChatID: userID,
+		Text:   "Yangi sinf uchun nomni kiriting.",
 	})
 
 	msgToDelete[userID] = append(msgToDelete[userID], msg.ID)

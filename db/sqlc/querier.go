@@ -10,7 +10,8 @@ import (
 
 type Querier interface {
 	AddStudentToClass(ctx context.Context, db DBTX, arg AddStudentToClassParams) (ClassStudent, error)
-	AddTestSetToClass(ctx context.Context, db DBTX, arg AddTestSetToClassParams) (ClassTestSet, error)
+	AddTestSetToClass(ctx context.Context, db DBTX, arg AddTestSetToClassParams) error
+	ClassesCount(ctx context.Context, db DBTX, teacherID int64) (int64, error)
 	CreateClass(ctx context.Context, db DBTX, arg CreateClassParams) (Class, error)
 	CreateTestSet(ctx context.Context, db DBTX, arg CreateTestSetParams) (TestSet, error)
 	CreateUser(ctx context.Context, db DBTX, arg CreateUserParams) (User, error)
@@ -20,13 +21,14 @@ type Querier interface {
 	DeleteTestSetFromClass(ctx context.Context, db DBTX, testSetID int64) error
 	DeleteUser(ctx context.Context, db DBTX, userID int64) error
 	DeleteWords(ctx context.Context, db DBTX, wordsID int64) error
+	GetClassByID(ctx context.Context, db DBTX, classID int64) (Class, error)
 	GetTestSetByID(ctx context.Context, db DBTX, testSetID int64) (TestSet, error)
-	GetTestSetsByCreatorID(ctx context.Context, db DBTX, arg GetTestSetsByCreatorIDParams) ([]TestSet, error)
 	GetTestSetsCount(ctx context.Context, db DBTX, creatorID int64) (int64, error)
 	GetUser(ctx context.Context, db DBTX, userID int64) (User, error)
 	InsertWords(ctx context.Context, db DBTX, arg InsertWordsParams) (Word, error)
 	ListClassStudents(ctx context.Context, db DBTX, arg ListClassStudentsParams) ([]ClassStudent, error)
-	ListClasses(ctx context.Context, db DBTX, arg ListClassesParams) ([]Class, error)
+	ListClassesByTeacherID(ctx context.Context, db DBTX, arg ListClassesByTeacherIDParams) ([]Class, error)
+	ListTestSetsByCreatorID(ctx context.Context, db DBTX, arg ListTestSetsByCreatorIDParams) ([]TestSet, error)
 	MakeTestSetPublic(ctx context.Context, db DBTX, testSetID int64) error
 	NewStudentProgress(ctx context.Context, db DBTX, arg NewStudentProgressParams) (StudentProgress, error)
 	NewTestSession(ctx context.Context, db DBTX, arg NewTestSessionParams) (TestSession, error)

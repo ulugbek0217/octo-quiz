@@ -35,6 +35,10 @@ func (app *App) MainHandler(ctx context.Context, b *bot.Bot, u *models.Update) {
 	}
 
 	state := app.F.Current(userID)
+	if u.CallbackQuery != nil {
+		fmt.Println(u.CallbackQuery.Data)
+	}
+
 	log.Printf("Current state for user %d: %s", userID, state)
 
 	switch state {
@@ -58,6 +62,9 @@ func (app *App) MainHandler(ctx context.Context, b *bot.Bot, u *models.Update) {
 		app.testSetTimeLimitAndFinish(ctx, u, userID, chatID)
 	case StateInsertWordsIntoTestSet:
 		app.insertWordsIntoTestSet(ctx, u, userID, chatID)
+		log.Println("in state of inserting words into test set")
+	case StateAskClassName:
+		app.askNewClassName(ctx, u, userID)
 	default:
 		log.Printf("Unexpected state: %s", state)
 		b.SendMessage(ctx, &bot.SendMessageParams{
@@ -373,13 +380,16 @@ func (app *App) insertWordsIntoTestSet(ctx context.Context, u *models.Update, ar
 
 	for _, line := range wordLines {
 		words := strings.Split(line, "#")
+		if len(words) < 2 {
+			continue
+		}
 		app.WG.Add(1)
 		go func() {
 			defer app.WG.Done()
 			arg := db.InsertWordsParams{
 				TestSetID:   testSetID.(int64),
-				EnglishWord: words[0],
-				UzbekWord:   words[1],
+				EnglishWord: strings.TrimSpace(words[0]),
+				UzbekWord:   strings.TrimSpace(words[1]),
 			}
 
 			_, err := app.Store.InsertWords(ctx, app.Store.Pool, arg)
@@ -391,33 +401,39 @@ func (app *App) insertWordsIntoTestSet(ctx context.Context, u *models.Update, ar
 	}
 	app.WG.Wait()
 
-	// keyboard, err := builder.NewInlineKeyboardBuilderFromJson(builder.KeyboardFinishOrInsertWordsButtons)
-	// if err != nil {
-	// 	log.Fatalf("err building keyboard: %v\n", err)
-	// }
-	// markup := keyboard.Build()
-	app.B.SendMessage(ctx, &bot.SendMessageParams{
+	msg, _ := app.B.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID:      chatID,
-		Text:        "So'zlar saqlandi ✅",
+		Text:        "So'zlar saqlandi ✅. Davomidan kiritish uchun so'zlarni yuboring yoki yakunlash uchun yakunlash tugmasini bosing.",
 		ReplyMarkup: builder.TeacherInlineKeyboardInsertWordsOrFinish(testSetID.(int64)),
 	})
+
+	msgToDelete[userID] = append(msgToDelete[userID], msg.ID)
+	msgToDelete[userID] = append(msgToDelete[userID], u.Message.ID)
 }
 
-// func (app *App) testSetCreatingFinish(ctx context.Context, u *models.Update, args ...any) {
-// 	userID := args[0].(int64)
-// 	chatID := args[1].(int64)
+func (app *App) askNewClassName(ctx context.Context, u *models.Update, args ...any) {
+	if u.Message == nil {
+		return
+	}
+	userID := args[0].(int64)
 
-// 	if u.Message == nil || u.Message.Text == "" {
-// 		msg, _ := app.B.SendMessage(ctx, &bot.SendMessageParams{
-// 			ChatID: chatID,
-// 			Text:   "Iltimos test to'plami uchun vaqt limitini kiriting.",
-// 		})
-// 		msgToDelete[userID] = append(msgToDelete[userID], msg.ID)
-// 		return
-// 	}
-// 	name := u.Message.Text
-// 	log.Printf("New test set name: %s\n", name)
-// 	app.F.Set(userID, "new_test_set_name", name)
-// 	msgToDelete[userID] = append(msgToDelete[userID], u.Message.ID)
-// 	app.F.Transition(userID, StateFinishTestSetCreating, userID, chatID)
-// }
+	newClassName := u.Message.Text
+
+	arg := db.CreateClassParams{
+		ClassName: newClassName,
+		TeacherID: u.Message.From.ID,
+	}
+
+	_, err := app.Store.CreateClass(ctx, app.Store.Pool, arg)
+	if err != nil {
+		msg, _ := app.B.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID: userID,
+			Text:   "sinf yaratishda xatolik!",
+		})
+		msgToDelete[userID] = append(msgToDelete[userID], msg.ID)
+		log.Fatalf("err creating a new class: %v\n", err)
+	}
+	msgToDelete[userID] = append(msgToDelete[userID], u.Message.ID)
+	app.F.Transition(userID, StateDefault)
+	app.DashBoard(ctx, app.B, u, userID)
+}

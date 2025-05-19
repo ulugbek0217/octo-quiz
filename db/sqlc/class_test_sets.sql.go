@@ -9,12 +9,12 @@ import (
 	"context"
 )
 
-const addTestSetToClass = `-- name: AddTestSetToClass :one
+const addTestSetToClass = `-- name: AddTestSetToClass :exec
 INSERT INTO class_test_sets (
     class_id, test_set_id
 ) VALUES (
     $1, $2
-) RETURNING class_id, test_set_id
+) ON CONFLICT DO NOTHING
 `
 
 type AddTestSetToClassParams struct {
@@ -22,11 +22,9 @@ type AddTestSetToClassParams struct {
 	TestSetID int64 `json:"test_set_id"`
 }
 
-func (q *Queries) AddTestSetToClass(ctx context.Context, db DBTX, arg AddTestSetToClassParams) (ClassTestSet, error) {
-	row := db.QueryRow(ctx, addTestSetToClass, arg.ClassID, arg.TestSetID)
-	var i ClassTestSet
-	err := row.Scan(&i.ClassID, &i.TestSetID)
-	return i, err
+func (q *Queries) AddTestSetToClass(ctx context.Context, db DBTX, arg AddTestSetToClassParams) error {
+	_, err := db.Exec(ctx, addTestSetToClass, arg.ClassID, arg.TestSetID)
+	return err
 }
 
 const deleteTestSetFromClass = `-- name: DeleteTestSetFromClass :exec

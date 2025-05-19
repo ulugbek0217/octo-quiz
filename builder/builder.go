@@ -16,6 +16,12 @@ const (
 	KeyboardFinishOrInsertWordsButtons string = "teacher_finish_or_insert_words"
 )
 
+type InlinePaginatorParams struct {
+	ItemCallback            string
+	NavigatorCallback       string
+	DashboardButtonCallback string
+}
+
 // InlineKeyboardButton represents a single button in the inline keyboard
 type InlineKeyboardButton struct {
 	Text         string `json:"text"`
@@ -66,7 +72,7 @@ func (b *InlineKeyboardBuilder) Build() *models.InlineKeyboardMarkup {
 	return markup
 }
 
-func TeacherInlineKeyboardPaginator(testSetsID []int64, offSet int32, isLastPage bool) *models.InlineKeyboardMarkup {
+func NewInlinePaginator(testSetsID []int64, offSet int32, isLastPage bool, options InlinePaginatorParams) *models.InlineKeyboardMarkup {
 	markup := &models.InlineKeyboardMarkup{
 		InlineKeyboard: make([][]models.InlineKeyboardButton, 3),
 	}
@@ -74,8 +80,9 @@ func TeacherInlineKeyboardPaginator(testSetsID []int64, offSet int32, isLastPage
 	for id, testSetID := range testSetsID {
 		fmt.Printf("paginator test id: %d\n", id)
 		button := models.InlineKeyboardButton{
-			Text:         fmt.Sprintf("%d", int(offSet)+id+1),
-			CallbackData: fmt.Sprintf("teacher_test_set_%d", testSetID),
+			Text: fmt.Sprintf("%d", int(offSet)+id+1),
+			// CallbackData: fmt.Sprintf("teacher_test_set_%d", testSetID),
+			CallbackData: fmt.Sprintf("%s_%d", options.ItemCallback, testSetID),
 		}
 		markup.InlineKeyboard[0] = append(markup.InlineKeyboard[0], button)
 	}
@@ -83,14 +90,16 @@ func TeacherInlineKeyboardPaginator(testSetsID []int64, offSet int32, isLastPage
 
 	if offSet >= 5 {
 		markup.InlineKeyboard[1][0] = models.InlineKeyboardButton{
-			Text:         "Prev",
-			CallbackData: fmt.Sprintf("test_sets_page_%d", offSet-5),
+			Text: "Prev",
+			// CallbackData: fmt.Sprintf("test_sets_page_%d", offSet-5),
+			CallbackData: fmt.Sprintf("%s_%d", options.NavigatorCallback, offSet-5),
 		}
 	}
 	if !isLastPage {
 		markup.InlineKeyboard[1][1] = models.InlineKeyboardButton{
-			Text:         "Next",
-			CallbackData: fmt.Sprintf("test_sets_page_%d", offSet+5),
+			Text: "Next",
+			// CallbackData: fmt.Sprintf("test_sets_page_%d", offSet+5),
+			CallbackData: fmt.Sprintf("%s_%d", options.NavigatorCallback, offSet+5),
 		}
 	}
 
@@ -137,14 +146,35 @@ func TeacherInlineKeyboardInsertWordsOrFinish(testSetID int64) *models.InlineKey
 		InlineKeyboard: [][]models.InlineKeyboardButton{
 			{
 				{
-					Text:         "Yana kiritish",
-					CallbackData: "insert_more_words",
+					Text:         "Yakunlash",
+					CallbackData: fmt.Sprintf("finish_inserting_words_into_%d", testSetID),
+				},
+			},
+		},
+	}
+
+	return markup
+}
+
+func TeacherInlineKeyboardClassOptions(classID int64) *models.InlineKeyboardMarkup {
+	markup := &models.InlineKeyboardMarkup{
+		InlineKeyboard: [][]models.InlineKeyboardButton{
+			{
+				{
+					Text:         "Sinf testlari",
+					CallbackData: fmt.Sprintf("test_set_of_class_%d", classID),
 				},
 			},
 			{
 				{
-					Text:         "Yakunlash",
-					CallbackData: fmt.Sprintf("finish_inserting_words_into_%d", testSetID),
+					Text:         "Sinf o'quvchilari",
+					CallbackData: fmt.Sprintf("students_of_class_%d", classID),
+				},
+			},
+			{
+				{
+					Text:         "Dashboard",
+					CallbackData: "dashboard",
 				},
 			},
 		},

@@ -9,6 +9,18 @@ import (
 	"context"
 )
 
+const classesCount = `-- name: ClassesCount :one
+SELECT COUNT(*) FROM classes
+WHERE teacher_id = $1
+`
+
+func (q *Queries) ClassesCount(ctx context.Context, db DBTX, teacherID int64) (int64, error) {
+	row := db.QueryRow(ctx, classesCount, teacherID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createClass = `-- name: CreateClass :one
 INSERT INTO classes (
     class_name, teacher_id
@@ -44,21 +56,38 @@ func (q *Queries) DeleteClass(ctx context.Context, db DBTX, classID int64) error
 	return err
 }
 
-const listClasses = `-- name: ListClasses :many
+const getClassByID = `-- name: GetClassByID :one
+SELECT class_id, class_name, teacher_id, created_at FROM classes
+WHERE class_id = $1
+`
+
+func (q *Queries) GetClassByID(ctx context.Context, db DBTX, classID int64) (Class, error) {
+	row := db.QueryRow(ctx, getClassByID, classID)
+	var i Class
+	err := row.Scan(
+		&i.ClassID,
+		&i.ClassName,
+		&i.TeacherID,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const listClassesByTeacherID = `-- name: ListClassesByTeacherID :many
 SELECT class_id, class_name, teacher_id, created_at FROM classes
 WHERE teacher_id = $1
 LIMIT $2
 OFFSET $3
 `
 
-type ListClassesParams struct {
+type ListClassesByTeacherIDParams struct {
 	TeacherID int64 `json:"teacher_id"`
 	Limit     int32 `json:"limit"`
 	Offset    int32 `json:"offset"`
 }
 
-func (q *Queries) ListClasses(ctx context.Context, db DBTX, arg ListClassesParams) ([]Class, error) {
-	rows, err := db.Query(ctx, listClasses, arg.TeacherID, arg.Limit, arg.Offset)
+func (q *Queries) ListClassesByTeacherID(ctx context.Context, db DBTX, arg ListClassesByTeacherIDParams) ([]Class, error) {
+	rows, err := db.Query(ctx, listClassesByTeacherID, arg.TeacherID, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
