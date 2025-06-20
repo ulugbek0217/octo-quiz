@@ -3,7 +3,7 @@
         [
             {
                 "text": "Test sets",
-                "callback_data": "test_sets_student"
+                "callback_data": "student_test_sets_page_0"
             }
         ]
     ]

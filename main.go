@@ -72,6 +72,8 @@ func main() {
 		bot.WithCallbackQueryDataHandler("teacher_classes_page", bot.MatchTypePrefix, app.TeacherClassesList),
 		bot.WithCallbackQueryDataHandler("teacher_class", bot.MatchTypePrefix, app.TeacherClassOptions),
 		bot.WithMessageTextHandler("attc", bot.MatchTypeCommand, app.AddTestSetToClass),
+		bot.WithMessageTextHandler("astc", bot.MatchTypeCommand, app.AddStudentToClass),
+		bot.WithCallbackQueryDataHandler("student_test_sets_page", bot.MatchTypePrefix, app.StudentTestSetsList),
 		// bot.WithCallbackQueryDataHandler("dashboard", bot.MatchTypeExact)
 		// bot.WithCallbackQueryDataHandler("teacher_test_sets_list", bot.MatchTypeExact, app.TeacherTestSetsList),
 		bot.WithDefaultHandler(app.MainHandler),

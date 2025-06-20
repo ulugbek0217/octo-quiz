@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
+	"github.com/jackc/pgx/v5"
 	"github.com/ulugbek0217/octo-quiz/builder"
 	db "github.com/ulugbek0217/octo-quiz/db/sqlc"
 )
@@ -343,6 +344,106 @@ func (app *App) AddTestSetToClass(ctx context.Context, b *bot.Bot, u *models.Upd
 	err := app.Store.AddTestSetToClass(ctx, app.Store.Pool, db.AddTestSetToClassParams{
 		ClassID:   class_id,
 		TestSetID: test_id,
+	})
+
+	if err != nil {
+		log.Fatalf("err inserting test to class: %v\n", err)
+	}
+
+	b.SendMessage(ctx, &bot.SendMessageParams{
+		ChatID: u.Message.From.ID,
+		Text:   "Qo'shildi",
+	})
+}
+
+func (app *App) AddStudentToClass(ctx context.Context, b *bot.Bot, u *models.Update) {
+	if u.Message == nil {
+		return
+	}
+
+	args := strings.Split(u.Message.Text, " ")
+	if len(args) != 3 {
+		b.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID: u.Message.From.ID,
+			Text:   "Xato buyruq. Namuna: /astc test-id class-id",
+		})
+		return
+	}
+	studentID, errTestID := strconv.ParseInt(args[1], 10, 64)
+	classID, errClassID := strconv.ParseInt(args[2], 10, 64)
+	if errTestID != nil || errClassID != nil {
+		b.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID: u.Message.From.ID,
+			Text:   "Ma'lumotlarni to'g'ri kiriting.",
+		})
+	}
+
+	// var isExist bool
+	// app.Store.Pool.QueryRow(ctx, "SELECT EXISTS(SELECT 1 FROM users WHERE user_id = $1)", studentID).Scan(&isExist)
+	// if !isExist {
+	// 	b.SendMessage(ctx, &bot.SendMessageParams{
+	// 		ChatID: u.Message.From.ID,
+	// 		Text:   "Bu student mavjud emas.",
+	// 	})
+	// 	return
+	// }
+
+	row, err := app.Store.GetUser(ctx, app.Store.Pool, studentID)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			b.SendMessage(ctx, &bot.SendMessageParams{
+				ChatID: u.Message.From.ID,
+				Text:   "Bu student mavjud emas.",
+			})
+			return
+		}
+	}
+	if row.Role != "student" {
+		if err == pgx.ErrNoRows {
+			b.SendMessage(ctx, &bot.SendMessageParams{
+				ChatID: u.Message.From.ID,
+				Text:   "Bu foydalanuvchi student emas.",
+			})
+		}
+	}
+	// app.Store.Pool.QueryRow(ctx, "SELECT EXISTS(SELECT 1 FROM classes WHERE class_id = $1)", classID).Scan(&isExist)
+	// if !isExist {
+	// 	b.SendMessage(ctx, &bot.SendMessageParams{
+	// 		ChatID: u.Message.From.ID,
+	// 		Text:   "Bunday sinf mavjud emas.",
+	// 	})
+	// 	return
+	// }
+
+	class, err := app.Store.GetClassByID(ctx, app.Store.Pool, classID)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			b.SendMessage(ctx, &bot.SendMessageParams{
+				ChatID: u.Message.From.ID,
+				Text:   "Bu sinf mavjud emas",
+			})
+		}
+		log.Fatalf("err getting class: %v\n", err)
+		return
+	}
+	if class.TeacherID != u.Message.From.ID {
+		b.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID: u.Message.From.ID,
+			Text:   "Bu sinf sizga tegishli emas.",
+		})
+	}
+	// if row.Role != "student" {
+	// 	if err == pgx.ErrNoRows {
+	// 		b.SendMessage(ctx, &bot.SendMessageParams{
+	// 			ChatID: u.Message.From.ID,
+	// 			Text:   "Bu foydalanuvchi student emas.",
+	// 		})
+	// 	}
+	// }
+
+	_, err = app.Store.AddStudentToClass(ctx, app.Store.Pool, db.AddStudentToClassParams{
+		ClassID:   classID,
+		StudentID: studentID,
 	})
 
 	if err != nil {

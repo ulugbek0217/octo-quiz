@@ -20,15 +20,23 @@ func (app *App) StudentTestSetsList(ctx context.Context, b *bot.Bot, u *models.U
 	}
 	userID := u.CallbackQuery.From.ID
 	chatID := userID
-	offset, err := strconv.ParseInt(strings.TrimPrefix(u.CallbackQuery.Data, "test_sets_page_"), 10, 32)
+	offset, err := strconv.ParseInt(strings.TrimPrefix(u.CallbackQuery.Data, "student_test_sets_page_"), 10, 32)
 	if err != nil {
 		log.Fatalf("err parsing offset: %v\n", err)
 	}
 
-	testSetsCount, err := app.Store.GetTestSetsCount(ctx, app.Store.Pool, userID)
+	var studentClassID int64
+	err = app.Store.Pool.QueryRow(ctx, "SELECT class_id FROM class_students WHERE student_id = $1", u.CallbackQuery.From.ID).Scan(&studentClassID)
+	if err != nil {
+		log.Fatalf("err getting class by student id: %v\n", err)
+	}
+
+	var testSetsCount int64
+	err = app.Store.Pool.QueryRow(ctx, "SELECT COUNT(*) FROM class_test_sets WHERE class_id = $1", studentClassID).Scan(&testSetsCount)
 	if err != nil {
 		log.Fatalf("err counting test sets: %v\n", err)
 	}
+	// qoldi shu yerda
 	if testSetsCount == 0 {
 		app.B.AnswerCallbackQuery(ctx, &bot.AnswerCallbackQueryParams{
 			CallbackQueryID: u.CallbackQuery.ID,
@@ -40,13 +48,14 @@ func (app *App) StudentTestSetsList(ctx context.Context, b *bot.Bot, u *models.U
 		app.DashBoard(ctx, b, u, userID)
 		return
 	}
-	log.Printf("next button offset: %d\n", offset)
-	arg := db.ListTestSetsByCreatorIDParams{
-		CreatorID: userID,
-		Limit:     5,
-		Offset:    int32(offset),
+	// log.Printf("next button offset: %d\n", offset)
+
+	arg := db.ListTestSetsByClassIDParams{
+		ClassID: studentClassID,
+		Limit:   5,
+		Offset:  int32(offset),
 	}
-	testSetsList, err := app.Store.ListTestSetsByCreatorID(ctx, app.Store.Pool, arg)
+	testSetsList, err := app.Store.ListTestSetsByClassID(ctx, app.Store.Pool, arg)
 	if err != nil {
 		log.Fatalf("err getting test sets: %v\n", err)
 	}
